@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O RESGATE DA AMIZADE: UMA MISSÃO URGENTE!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluindo fonte pixelada para o tema de jogo -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos de Fundo e Fonte */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1a26; /* Azul escuro, tema de jogo/espaço */
+            color: #e0e7ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            /* Padrão de fundo sutil (estrelas/pontos) */
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="%232e3a4e" /></svg>');
+            background-size: 10px 10px;
+        }
+        /* Card Principal com tema "tecnológico" */
+        #game-container {
+            max-width: 650px;
+            width: 100%;
+            background: #1a273b; /* Fundo mais claro para o card */
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            border: 3px solid #6366f1; /* Borda roxa para "poder" */
+            position: relative;
+            overflow: hidden;
+        }
+        /* Estilo da fonte pixelada para títulos */
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 2px 2px #000;
+        }
+        /* Estilo para botões de escolha */
+        .btn-choice {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: all 0.2s ease-in-out;
+            border: 2px solid #a78bfa;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .btn-choice:hover {
+            background-color: #6366f1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.3);
+        }
+        /* Estilo do Botão de WhatsApp */
+        .whatsapp-btn {
+            background-color: #25D366;
+            transition: all 0.3s ease-in-out;
+        }
+        .whatsapp-btn:hover {
+            background-color: #1DA851;
+            box-shadow: 0 10px 15px -3px rgba(37, 211, 102, 0.5);
+            transform: scale(1.02);
+        }
+        /* Animação de tremor para alerta de vidas baixas */
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        /* Animação de fade-in para transições de cena */
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hidden { display: none; }
+    </style>
+    <!-- Configura a fonte Inter para o Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="game-container" class="fade-in">
+        <h1 class="text-4xl pixel-font text-red-400 mb-4">
+            MISSÃO: RESGATE DA AMIZADE
+        </h1>
+        <p class="text-lg mb-6 pixel-font text-purple-300">
+            NÍVEL DE AMIZADE: <span id="friendship-level">5 VIDAS</span>
+        </p>
+
+        <!-- CENA INICIAL -->
+        <div id="intro-scene">
+            <p class="text-xl mb-6 leading-relaxed">
+                Bem-vindo à sua missão mais crítica! O sistema de amizade entre você e a **Thamiriz** está em PERIGO.
+                Precisamos de você para evitar uma CATASTROFE INTERPESSOAL. Cada escolha errada tem CONSEQUÊNCIAS GRAVES!
+            </p>
+            <p class="text-2xl font-bold text-yellow-300 mb-8">
+                Sua missão começa AGORA!
+            </p>
+            <button onclick="startMission()" class="btn-choice px-8 py-4 text-xl">
+                INICIAR MISSÃO DE RESGATE
+            </button>
+        </div>
+
+        <!-- CENA DE ESCOLHA (Recarregada a cada fase) -->
+        <div id="first-choice-scene" class="hidden fade-in">
+            <!-- Conteúdo da fase será inserido aqui pelo JavaScript -->
+        </div>
+
+        <!-- CENA DE PUNIÇÃO (Quando erra a escolha) -->
+        <div id="punishment-scene" class="hidden fade-in">
+            <h2 class="text-3xl pixel-font text-red-500 mb-6">
+                ERRO GRAVE!
+            </h2>
+            
+            <!-- Ícone de Alerta SVG -->
+            <svg class="w-20 h-20 mx-auto mb-6 text-red-500 shake" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+
+            <p id="punishment-text" class="text-xl mb-6 leading-relaxed text-red-200 bg-red-900/50 p-4 rounded-lg border border-red-700">
+                <!-- Texto da punição inserido pelo JS -->
+            </p>
+            
+            <p class="text-sm text-yellow-400 mb-8">
+                (Sistema de Amizade Abortado. Tente Novamente ou uma Catástrofe Acontecerá!)
+            </p>
+
+            <button onclick="continueMission()" class="btn-choice px-8 py-4 text-xl bg-red-600 hover:bg-red-700">
+                CONTINUAR MISSÃO (SE TIVER CORAGEM!)
+            </button>
+        </div>
+
+        <!-- CENA DE SUCESSO (Quando acerta a escolha) -->
+        <div id="success-scene" class="hidden fade-in">
+            <h2 class="text-3xl pixel-font text-green-400 mb-6">
+                SUCESSO!
+            </h2>
+            <svg class="w-20 h-20 mx-auto mb-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+
+            <p id="success-text" class="text-xl mb-6 leading-relaxed text-green-200">
+                <!-- Texto de sucesso inserido pelo JS -->
+            </p>
+            <button onclick="nextStage()" class="btn-choice px-8 py-4 text-xl bg-green-600 hover:bg-green-700">
+                AVANÇAR PARA A PRÓXIMA FASE
+            </button>
+        </div>
+
+        <!-- CENA FINAL DO WHATSAPP (Após sucesso em todas as fases) -->
+        <div id="final-whatsapp-scene" class="hidden fade-in">
+            <h2 class="text-3xl pixel-font text-yellow-300 mb-6">
+                MISSÃO CUMPRIDA!
+            </h2>
+            <p class="text-xl mb-8 leading-relaxed">
+                Você sobreviveu às provações! Agora, para selar o pacto da amizade e restaurar o universo, você deve fazer o ato final.
+            </p>
+            <button onclick="sendWhatsAppMessage(true)" 
+                    class="whatsapp-btn w-full px-8 py-4 text-white font-black text-xl flex items-center justify-center rounded-xl shadow-xl transition duration-300">
+                
+                <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.031 3c-4.908 0-9 4.1-9 9.2s4.092 9.2 9 9.2c1.678 0 3.32-.486 4.777-1.423l2.844.975-1.041-2.903c1.077-1.487 1.705-3.32 1.705-5.845 0-5.1-4.092-9.2-9-9.2zm4.085 10.871l-.193.303c-.235.37-1.35 1.503-1.637 1.83-.289.33-.538.373-1.004.184-.465-.187-1.554-.572-2.956-1.802-1.096-.957-1.844-2.146-2.079-2.516-.234-.37-.02-.578.163-.757l.504-.504c.18-.18.234-.37.348-.619.114-.249.057-.465-.03-.619l-.79-.197c-.249-.057-.594-.029-.817.057-.223.085-.595.314-.908.627-.314.314-.702.733-1.066 1.487s-.682 1.638.163 3.197c.844 1.558 2.593 2.766 3.996 3.388 1.403.621 3.149.52 4.187.314.504-.099 1.15-.43 1.343-.77.193-.342.193-.655.136-1.004l-.249-.702c-.113-.277-.282-.369-.504-.482l-.649-.314c-.223-.085-.348-.113-.572.136z"/>
+                </svg>
+                
+                ENVIAR MENSAGEM PARA THAMIRIZ (VOCÊ CONSEGUE!)
+            </button>
+            <p class="text-sm text-gray-400 mt-3">
+                (Isso me enviará uma mensagem de paz no WhatsApp)
+            </p>
+        </div>
+        
+        <!-- CENA DE GAME OVER (Apenas para display, o WhatsApp é acionado antes) -->
+        <div id="game-over-scene" class="hidden fade-in">
+             <!-- Conteúdo de Game Over inserido pelo JS -->
+        </div>
+
+
+        <p class="text-sm text-gray-500 mt-8">
+            Desenvolvido por Thamiriz Corporation. Todos os direitos intergalácticos reservados.
+        </p>
+    </div>
+
+    <script>
+        const PHONENUMBER = '5551997202759'; 
+        const FRIENDSHIP_LIVES_MAX = 5;
+        let friendshipLives = FRIENDSHIP_LIVES_MAX;
+        let currentStage = 1; 
+        const totalStages = 3; 
+        let isGameOver = false; // Flag para bloquear interações após o fim
+
+        // Mensagens do WhatsApp
+        const WIN_MESSAGE = encodeURIComponent("Thamiriz! Sobrevivi à MISSÃO RESGATE DA AMIZADE! Agora quebrei o feitiço e posso finalmente te mandar um 'Bom Dia' (ou a fofoca). Qual a boa?");
+        const LOSE_MESSAGE = encodeURIComponent("FALHA CRÍTICA! Minhas vidas de amizade acabaram, Thami. Eu fui forçado a te mandar essa mensagem.");
+
+
+        // Elementos de UI
+        const friendshipLevelDisplay = document.getElementById('friendship-level');
+        const introScene = document.getElementById('intro-scene');
+        const firstChoiceScene = document.getElementById('first-choice-scene');
+        const punishmentScene = document.getElementById('punishment-scene');
+        const punishmentText = document.getElementById('punishment-text');
+        const successScene = document.getElementById('success-scene');
+        const successText = document.getElementById('success-text');
+        const finalWhatsappScene = document.getElementById('final-whatsapp-scene');
+        const gameOverScene = document.getElementById('game-over-scene');
+        const gameContainer = document.getElementById('game-container');
+
+
+        // Punições e Textos para cada erro/sucesso
+        const punishments = {
+            'wrong1': {
+                text: "Ao ignorar a crise, você foi transportado para uma realidade onde todos os seus lanches favoritos viraram Chuchu cru. E o pior: acabou o café! CONSEQUÊNCIA: Perda de 1 vida de amizade.",
+            },
+            'wrong2': {
+                text: "Você tentou fugir, mas foi capturado por um exército de patos falantes que exigem ser saudados com um 'Bom Dia' a cada 5 segundos. O terror! CONSEQUÊNCIA: Perda de 1 vida de amizade.",
+            },
+            'wrong3': {
+                text: "Você subestimou o poder da Thamiriz! Agora, seu celular só toca 'Pi Pi Pi Po Po Po' e o carregador nunca alcança a tomada. Sofra! CONSEQUÊNCIA: Perda de 1 vida de amizade.",
+            }
+        };
+
+        const successes = {
+            'correct1': "Parabéns! Você demonstrou um lampejo de memória. Isso salvou uma planta de escritório de se transformar em um arbusto de jiló. Prossiga!",
+            'correct2': "Inteligente! Você percebeu que a Thamiriz é a chave. Como recompensa, você ganhou 100 xp de amizade e um abraço quentinho com poderes de reconciliação. Avance!",
+            'correct3': "Excelente! Você está quase lá. Sua persistência restaurou a cor de um arco-íris perdido. Agora só falta um passo para a vitória total!"
+        };
+
+        /**
+         * Atualiza o display de vidas e verifica se o jogo acabou.
+         */
+        function updateFriendshipLevel() {
+            friendshipLevelDisplay.textContent = `${friendshipLives} VIDAS`;
+            
+            if (friendshipLives <= 0 && !isGameOver) {
+                isGameOver = true;
+                
+                // MENSAGEM DE DERROTA AQUI!
+                hideAllScenes();
+                gameOverScene.classList.remove('hidden');
+                gameOverScene.innerHTML = `
+                    <h2 class="text-3xl pixel-font text-red-500 mb-6">GAME OVER!</h2>
+                    <p class="text-xl mb-8 leading-relaxed text-red-200">
+                        Suas vidas de amizade acabaram. Sua teimosia forçou o sistema a intervir!
+                        A única forma de resgatar o que restou é enviando a mensagem de socorro forçada.
+                    </p>
+                    <button onclick="sendWhatsAppMessage(false)" 
+                        class="whatsapp-btn w-full px-8 py-4 text-white font-black text-xl flex items-center justify-center rounded-xl shadow-xl transition duration-300">
+                        ENVIAR MENSAGEM DE SOCORRO (PERDEU!)
+                    </button>
+                    <p class="text-sm text-gray-400 mt-3">
+                        (A mensagem já vem com a confissão da sua derrota.)
+                    </p>
+                `;
+
+                // Garante que o shake pare e o container principal suma
+                friendshipLevelDisplay.classList.remove('shake');
+                
+                // Chama a função com "false" para a mensagem de derrota
+                // NOTA: O clique do usuário no botão é que vai disparar a função
+                // Deixamos a mensagem de alerta customizada (o GAME OVER) no lugar do alert()
+            } else if (friendshipLives <= 2) {
+                // Alerta (Shake)
+                friendshipLevelDisplay.classList.add('text-red-400', 'shake'); 
+            } else {
+                // Normal
+                friendshipLevelDisplay.classList.remove('text-red-400', 'shake');
+                friendshipLevelDisplay.classList.add('text-purple-300');
+            }
+        }
+
+        function hideAllScenes() {
+            introScene.classList.add('hidden');
+            firstChoiceScene.classList.add('hidden');
+            punishmentScene.classList.add('hidden');
+            successScene.classList.add('hidden');
+            finalWhatsappScene.classList.add('hidden');
+            gameOverScene.classList.add('hidden');
+        }
+
+        function startMission() {
+            if (isGameOver) return;
+            hideAllScenes();
+            loadStage1(); 
+            gameContainer.classList.add('fade-in'); 
+        }
+
+        function makeChoice(choice) {
+            if (isGameOver) return;
+            hideAllScenes();
+            gameContainer.classList.add('fade-in');
+
+            if (choice.startsWith('wrong')) {
+                friendshipLives--;
+                updateFriendshipLevel(); // Verifica se o jogo acabou
+                
+                if (!isGameOver) {
+                    punishmentText.textContent = punishments[choice].text;
+                    punishmentScene.classList.remove('hidden');
+                }
+
+            } else if (choice.startsWith('correct')) {
+                successText.textContent = successes[choice];
+                successScene.classList.remove('hidden');
+            }
+        }
+        
+        function continueMission() {
+            if (isGameOver) return;
+            // Após uma punição, volta para a escolha da fase atual (até acertar)
+            if (currentStage === 1) {
+                loadStage1();
+            } else if (currentStage === 2) {
+                loadStage2(); 
+            } else if (currentStage === 3) {
+                 loadStage3(); 
+            }
+        }
+
+        function nextStage() {
+            if (isGameOver) return;
+            currentStage++;
+            if (currentStage > totalStages) {
+                // Fim do Jogo (VITÓRIA)
+                hideAllScenes();
+                finalWhatsappScene.classList.remove('hidden');
+                gameContainer.classList.add('fade-in');
+            } else {
+                // Carrega a próxima fase
+                if (currentStage === 2) {
+                    loadStage2();
+                } else if (currentStage === 3) {
+                    loadStage3();
+                }
+            }
+        }
+        
+        // Funções de Carregamento de Fase (permanecem as mesmas)
+        function loadStage1() {
+            hideAllScenes();
+            firstChoiceScene.innerHTML = `
+                <h2 class="text-2xl pixel-font text-indigo-300 mb-6">FASE 1: O DESPERTAR SILENCIOSO</h2>
+                <p class="text-xl mb-8 leading-relaxed">Você acorda em uma dimensão paralela onde o "Bom Dia" não existe. O que você faz primeiro?</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button onclick="makeChoice('wrong1')" class="btn-choice">A) Ignorar e ir tomar café</button>
+                    <button onclick="makeChoice('correct1')" class="btn-choice">B) Tentar lembrar da última vez que falou com a Thamiriz</button>
+                </div>
+            `;
+            firstChoiceScene.classList.remove('hidden');
+            gameContainer.classList.add('fade-in');
+        }
+
+        function loadStage2() {
+            hideAllScenes();
+            firstChoiceScene.innerHTML = `
+                <h2 class="text-2xl pixel-font text-indigo-300 mb-6">FASE 2: O SUMIÇO DO BOM DIA</h2>
+                <p class="text-xl mb-8 leading-relaxed">Você descobre que a falta do 'Bom Dia' criou um buraco negro de silêncio no trabalho. O que você faz?</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button onclick="makeChoice('wrong2')" class="btn-choice">A) Tentar se esconder da Thamiriz atrás do monitor</button>
+                    <button onclick="makeChoice('correct2')" class="btn-choice">B) Procurar um bilhete secreto da Thamiriz (ou o WhatsApp dela)</button>
+                </div>
+            `;
+            firstChoiceScene.classList.remove('hidden');
+            gameContainer.classList.add('fade-in');
+        }
+
+        function loadStage3() {
+            hideAllScenes();
+            firstChoiceScene.innerHTML = `
+                <h2 class="text-2xl pixel-font text-indigo-300 mb-6">FASE FINAL: A CONVOCAÇÃO URGENTE</h2>
+                <p class="text-xl mb-8 leading-relaxed">A voz da Thamiriz ecoa nos seus pensamentos: "Por que você não fala comigo??". Qual a sua reação para não perder a última chance?</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button onclick="makeChoice('wrong3')" class="btn-choice">A) Fingir que está ocupado(a) demais com o Excel</button>
+                    <button onclick="makeChoice('correct3')" class="btn-choice">B) Abrir o WhatsApp para mandar uma mensagem (antes que seja tarde!)</button>
+                </div>
+            `;
+            firstChoiceScene.classList.remove('hidden');
+            gameContainer.classList.add('fade-in');
+        }
+
+        /**
+         * Abre o link do WhatsApp com a mensagem de vitória ou derrota.
+         * @param {boolean} isWin - Se TRUE, envia a mensagem de vitória. Se FALSE, envia a mensagem de derrota.
+         */
+        function sendWhatsAppMessage(isWin) {
+            const message = isWin ? WIN_MESSAGE : LOSE_MESSAGE;
+            const whatsappLink = `https://wa.me/${PHONENUMBER}?text=${message}`;
+            window.open(whatsappLink, '_blank');
+        }
+
+        // Inicializa o contador de vidas
+        updateFriendshipLevel();
+    </script>
+
+</body>
+</html>
+
